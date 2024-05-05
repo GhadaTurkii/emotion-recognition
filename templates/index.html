@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        #video_container {
+            position: relative;
+            display: inline-block;
+        }
+        #video {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #333;
+        }
+        #emotion_text {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        #control_buttons {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Emotion Detection</h1>
+        <div id="control_buttons">
+            <button id="start_button">Start Camera</button>
+            <button id="stop_button">Stop Camera</button>
+        </div>
+        <div id="video_container">
+            <img id="video" src="{{ url_for('video_feed') }}" width="640" height="480">
+            <p id="emotion_text"></p>
+        </div>
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        var video = document.getElementById('video');
+        var emotionText = document.getElementById('emotion_text');
+        var startButton = document.getElementById('start_button');
+        var stopButton = document.getElementById('stop_button');
+        var isCameraRunning = true;
+
+        // Function to update the detected emotion
+        function updateEmotion(emotion) {
+            emotionText.innerHTML = "Detected Emotion: " + emotion;
+        }
+
+        // Function to start the camera
+        function startCamera() {
+            video.src = "{{ url_for('video_feed') }}";
+            isCameraRunning = true;
+            startButton.disabled = true;
+            stopButton.disabled = false;
+        }
+
+        // Function to stop the camera
+        function stopCamera() {
+            video.src = "";
+            emotionText.innerHTML = "";
+            isCameraRunning = false;
+            startButton.disabled = false;
+            stopButton.disabled = true;
+        }
+
+        // Update the displayed emotion every second
+        function updateEmotionPeriodically() {
+            if (isCameraRunning) {
+                $.getJSON("/emotion", function(data) {
+                    if (data.length > 0) {
+                        updateEmotion(data[0]);
+                    }
+                });
+            }
+        }
+
+        // Bind click event to start button
+        startButton.addEventListener('click', function() {
+            startCamera();
+        });
+
+        // Bind click event to stop button
+        stopButton.addEventListener('click', function() {
+            stopCamera();
+        });
+
+        // Update emotion periodically
+        setInterval(updateEmotionPeriodically, 1000);
+
+        // Start camera by default
+        stopCamera();
+    </script>
+</body>
+</html>
